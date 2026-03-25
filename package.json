@@ -1,0 +1,49 @@
+{
+  "name": "fireblocks",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon --exec ts-node src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@elastic/elasticsearch": "^9.3.4",
+    "amqplib": "^0.10.9",
+    "bcryptjs": "^3.0.3",
+    "compression": "^1.8.1",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.3.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "kafkajs": "^2.2.4",
+    "mongoose": "^9.3.2",
+    "morgan": "^1.10.1",
+    "mssql": "^12.2.1",
+    "redis": "^5.11.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/amqplib": "^0.10.8",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/compression": "^1.8.1",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/kafkajs": "^1.8.2",
+    "@types/morgan": "^1.9.10",
+    "@types/mssql": "^9.1.10",
+    "@types/node": "^25.5.0",
+    "nodemon": "^3.1.14",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.2"
+  }
+}
