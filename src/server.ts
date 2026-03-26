@@ -14,7 +14,7 @@ import rateLimit from 'express-rate-limit';
 // ── Connections ───────────────────────────────────────────────────────────────
 // Each import path reflects the new `connections/` folder name.
 // See bottom of this file for which services are enabled via .env flags.
-import connectMongodb        from './connections/mongodb';
+import connectMongoDB from './connections/mongodb';
 import connectRedis     from './connections/redis';
 import connectElasticsearch from './connections/elasticsearch';
 import connectKafka     from './connections/kafka';
@@ -28,11 +28,14 @@ import connectMSSQL     from './connections/mssql';
 // import analyticsRoutes from './routes/analytics';
 // import hotelRoutes from './routes/hotels';
 // import companyRoutes from './routes/companies';
+import taskRoutes from './routes/taskRoutes';
+import personRoutes from './routes/personRoutes';
 
 // Middleware
 import errorHandler from './middleware/errorHandler';
 import { notFound } from './middleware/notFound';
-import connectMongoDB from './connections/mongodb';
+import transactionRoutes from './routes/transactionRoutes';
+
 
 const app: Application = express();
 const PORT = process.env.PORT || 5000;
@@ -137,6 +140,9 @@ app.get('/health', (_req: Request, res: Response) => {
 // app.use('/api/analytics', analyticsRoutes);
 // app.use('/api/hotels', hotelRoutes);
 // app.use('/api/companies', companyRoutes);
+app.use('/api/tasks', taskRoutes);
+app.use('/api/persons', personRoutes);
+app.use('/api/transactions', transactionRoutes);
 
 // ─────────────────────────────────────────────
 // 🚨 ERROR HANDLING MIDDLEWARE
