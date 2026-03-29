@@ -92,6 +92,8 @@ const IDEMPOTENCY_TTL_SECONDS = 24 * 60 * 60; // 24 hours for successful transfe
 
 /**
  * Atomic money transfer using PostgreSQL transaction + Redis idempotency
+ * 
+ * ❗ If Redis loses the key → your system can double-charge ❗❗❗
  */
 export const transferMoneyWithRedisAndPostgres = async (
   fromAccount: string,
@@ -108,6 +110,7 @@ export const transferMoneyWithRedisAndPostgres = async (
   newToBalance: number;
   message: string;
 }> => {
+  // ❗ If Redis loses the key → your system can double-charge ❗❗❗the key needs to be persisted to the DB!
   if (amount <= 0) {
     throw new Error("Amount must be greater than zero");
   }
