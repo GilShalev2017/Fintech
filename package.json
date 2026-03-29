@@ -12,7 +12,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "dependencies": {
     "@elastic/elasticsearch": "^9.3.4",
     "amqplib": "^0.10.9",

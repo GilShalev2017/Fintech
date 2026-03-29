@@ -70,12 +70,12 @@ services:
       - "5432:5432"
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: Dev@password123
+      POSTGRES_PASSWORD: Dev@password123cls
       POSTGRES_DB: money_db
     volumes:
       - postgres-data:/var/lib/postgresql/data
       # Uncomment if you want to run init scripts on first start:
-      # - ./init-db:/docker-entrypoint-initdb.d
+      - ./init-postgres-db:/docker-entrypoint-initdb.d
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d money_db"]
