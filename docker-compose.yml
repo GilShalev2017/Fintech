@@ -58,6 +58,55 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+    # ───────────────────────────────────────────
+  # 🐘 POSTGRESQL
+  # Relational database optimized for transactions, accounts, and idempotency.
+  # Perfect for money-related features requiring ACID guarantees.
+  # ───────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: dev-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Dev@password123
+      POSTGRES_DB: money_db
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      # Uncomment if you want to run init scripts on first start:
+      # - ./init-db:/docker-entrypoint-initdb.d
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d money_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # ───────────────────────────────────────────
+  # 📊 PGADMIN
+  # Web-based PostgreSQL admin UI (similar to mongo-express)
+  # Access at: http://localhost:5050
+  # Login: admin@admin.com / adminpassword
+  # ───────────────────────────────────────────
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: dev-pgadmin
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: adminpassword
+      PGADMIN_CONFIG_SERVER_MODE: "False"      # Simpler for local dev
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   # ───────────────────────────────────────────
   # 🔴 REDIS
   # In-memory store used for:
@@ -286,4 +335,8 @@ volumes:
   rabbitmq-data:
     driver: local
   mssql-data:
+    driver: local
+  postgres-data:
+    driver: local
+  pgadmin-data:
     driver: local

@@ -1,25 +1,26 @@
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
 // ⚠️ dotenv.config() MUST be called before any other imports that read process.env.
 // This populates process.env from your .env file so all subsequent modules
 // can safely access environment variables at import time.
 dotenv.config();
 
-import express, { Application, Request, Response } from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import morgan from 'morgan';
-import compression from 'compression';
-import rateLimit from 'express-rate-limit';
+import express, { Application, Request, Response } from "express";
+import cors from "cors";
+import helmet from "helmet";
+import morgan from "morgan";
+import compression from "compression";
+import rateLimit from "express-rate-limit";
 
 // ── Connections ───────────────────────────────────────────────────────────────
 // Each import path reflects the new `connections/` folder name.
 // See bottom of this file for which services are enabled via .env flags.
-import connectMongoDB from './connections/mongodb';
-import connectRedis     from './connections/redis';
-import connectElasticsearch from './connections/elasticsearch';
-import connectKafka     from './connections/kafka';
-import connectRabbitMQ  from './connections/rabbitmq';
-import connectMSSQL     from './connections/mssql';
+import connectMongoDB from "./connections/mongodb";
+import connectRedis from "./connections/redis";
+import connectElasticsearch from "./connections/elasticsearch";
+import connectKafka from "./connections/kafka";
+import connectRabbitMQ from "./connections/rabbitmq";
+import connectMSSQL from "./connections/mssql";
+import { connectPostgres } from './connections/postgres';
 
 // Routes
 // import authRoutes from './routes/auth';
@@ -28,14 +29,13 @@ import connectMSSQL     from './connections/mssql';
 // import analyticsRoutes from './routes/analytics';
 // import hotelRoutes from './routes/hotels';
 // import companyRoutes from './routes/companies';
-import taskRoutes from './routes/taskRoutes';
-import personRoutes from './routes/personRoutes';
+import taskRoutes from "./routes/taskRoutes";
+import personRoutes from "./routes/personRoutes";
 
 // Middleware
-import errorHandler from './middleware/errorHandler';
-import { notFound } from './middleware/notFound';
-import transactionRoutes from './routes/transactionRoutes';
-
+import errorHandler from "./middleware/errorHandler";
+import { notFound } from "./middleware/notFound";
+import transactionRoutes from "./routes/transactionRoutes";
 
 const app: Application = express();
 const PORT = process.env.PORT || 5000;
@@ -52,14 +52,16 @@ app.use(helmet());
 // cors controls which origins (domains) are allowed to call this API from a browser.
 // Without this, browsers block cross-origin requests (e.g. frontend on :3000 → API on :5000).
 // `credentials: true` allows cookies/auth headers to be sent cross-origin.
-app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'http://localhost:5173',
-    'http://localhost:5174',
-  ],
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:5173",
+      "http://localhost:5174",
+    ],
+    credentials: true,
+  }),
+);
 
 // ─────────────────────────────────────────────
 // 🚦 RATE LIMITING
@@ -72,15 +74,15 @@ app.use(cors({
 //   telling clients how many requests remain and when the window resets.
 // legacyHeaders: false → removes the older X-RateLimit-* headers (redundant noise).
 const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'), // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100'),       // max 100 reqs per window
-  standardHeaders: 'draft-7', // RFC-standard RateLimit response header
-  legacyHeaders: false,        // disable X-RateLimit-* headers
-  message: 'Too many requests from this IP, please try again later.',
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || "900000"), // 15 minutes
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || "100"), // max 100 reqs per window
+  standardHeaders: "draft-7", // RFC-standard RateLimit response header
+  legacyHeaders: false, // disable X-RateLimit-* headers
+  message: "Too many requests from this IP, please try again later.",
 });
 
 // Apply rate limiting only to /api/ routes, not health checks or static assets.
-app.use('/api/', limiter);
+app.use("/api/", limiter);
 
 // ─────────────────────────────────────────────
 // 📦 BODY PARSING & COMPRESSION
@@ -88,11 +90,11 @@ app.use('/api/', limiter);
 
 // express.json() parses incoming requests with JSON payloads (Content-Type: application/json).
 // The 10mb limit prevents excessively large payloads from crashing the server.
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: "10mb" }));
 
 // express.urlencoded() parses HTML form submissions (Content-Type: application/x-www-form-urlencoded).
 // `extended: true` allows nested objects in form data.
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // compression() gzip-compresses HTTP responses before sending them to the client.
 // Reduces bandwidth usage significantly for JSON-heavy APIs (often 60–80% smaller).
@@ -105,10 +107,10 @@ app.use(compression());
 // morgan logs HTTP requests to stdout.
 // 'dev' format: colored, concise output great for development (GET /api/users 200 12ms).
 // 'combined' format: Apache-style full logs suited for production log aggregators.
-if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('dev'));
+if (process.env.NODE_ENV === "development") {
+  app.use(morgan("dev"));
 } else {
-  app.use(morgan('combined'));
+  app.use(morgan("combined"));
 }
 
 // ─────────────────────────────────────────────
@@ -121,11 +123,11 @@ if (process.env.NODE_ENV === 'development') {
 // is always publicly accessible without a token.
 // `version` reads the npm package version from the environment so you can
 // confirm exactly which build is deployed without looking at logs.
-app.get('/health', (_req: Request, res: Response) => {
+app.get("/health", (_req: Request, res: Response) => {
   res.json({
-    status: 'OK',
+    status: "OK",
     timestamp: new Date().toISOString(),
-    uptime: process.uptime(),           // seconds the process has been running
+    uptime: process.uptime(), // seconds the process has been running
     version: process.env.npm_package_version,
   });
 });
@@ -140,9 +142,9 @@ app.get('/health', (_req: Request, res: Response) => {
 // app.use('/api/analytics', analyticsRoutes);
 // app.use('/api/hotels', hotelRoutes);
 // app.use('/api/companies', companyRoutes);
-app.use('/api/tasks', taskRoutes);
-app.use('/api/persons', personRoutes);
-app.use('/api/transactions', transactionRoutes);
+app.use("/api/tasks", taskRoutes);
+app.use("/api/persons", personRoutes);
+app.use("/api/transactions", transactionRoutes);
 
 // ─────────────────────────────────────────────
 // 🚨 ERROR HANDLING MIDDLEWARE
@@ -172,62 +174,76 @@ app.use(errorHandler);
 // This lets you spin up only the Docker containers you need and match
 // the flags, avoiding connection errors from services that aren't running.
 const isEnabled = (flag: string): boolean =>
-  process.env[flag]?.toLowerCase() === 'true';
- 
+  process.env[flag]?.toLowerCase() === "true";
+
 const startServer = async (): Promise<void> => {
   try {
-  
-     // ── MongoDB (usually always on) ──────────────────────────────────────
-    if (isEnabled('ENABLED_MONGO')) {
+    // ── MongoDB (usually always on) ──────────────────────────────────────
+    if (isEnabled("ENABLED_MONGO")) {
       await connectMongoDB();
-      console.log('✅ MongoDB connected');
+      console.log("✅ MongoDB connected");
     } else {
-      console.log('⏭️  MongoDB skipped (ENABLED_MONGO != true)');
+      console.log("⏭️  MongoDB skipped (ENABLED_MONGO != true)");
     }
- 
+
     // ── Redis ────────────────────────────────────────────────────────────
-    if (isEnabled('ENABLED_REDIS')) {
+    if (isEnabled("ENABLED_REDIS")) {
       await connectRedis();
-      console.log('✅ Redis connected');
+      console.log("✅ Redis connected");
     } else {
-      console.log('⏭️  Redis skipped (ENABLED_REDIS != true)');
+      console.log("⏭️  Redis skipped (ENABLED_REDIS != true)");
     }
- 
+
     // ── Elasticsearch ─────────────────────────────────────────────────────
-    if (isEnabled('ENABLED_ES')) {
+    if (isEnabled("ENABLED_ES")) {
       await connectElasticsearch();
-      console.log('✅ Elasticsearch connected');
+      console.log("✅ Elasticsearch connected");
     } else {
-      console.log('⏭️  Elasticsearch skipped (ENABLED_ES != true)');
+      console.log("⏭️  Elasticsearch skipped (ENABLED_ES != true)");
     }
- 
+
     // ── Kafka ─────────────────────────────────────────────────────────────
-    if (isEnabled('ENABLED_KAFKA')) {
+    if (isEnabled("ENABLED_KAFKA")) {
       await connectKafka();
-      console.log('✅ Kafka connected');
+      console.log("✅ Kafka connected");
     } else {
-      console.log('⏭️  Kafka skipped (ENABLED_KAFKA != true)');
+      console.log("⏭️  Kafka skipped (ENABLED_KAFKA != true)");
     }
- 
+
     // ── RabbitMQ ──────────────────────────────────────────────────────────
-    if (isEnabled('ENABLED_RABBIT')) {
+    if (isEnabled("ENABLED_RABBIT")) {
       await connectRabbitMQ();
-      console.log('✅ RabbitMQ connected');
+      console.log("✅ RabbitMQ connected");
     } else {
-      console.log('⏭️  RabbitMQ skipped (ENABLED_RABBIT != true)');
+      console.log("⏭️  RabbitMQ skipped (ENABLED_RABBIT != true)");
     }
- 
+
     // ── SQL Server ────────────────────────────────────────────────────────
-    if (isEnabled('ENABLED_MSSQL')) {
+    if (isEnabled("ENABLED_MSSQL")) {
       await connectMSSQL();
-      console.log('✅ SQL Server connected');
+      console.log("✅ SQL Server connected");
     } else {
-      console.log('⏭️  SQL Server skipped (ENABLED_MSSQL != true)');
+      console.log("⏭️  SQL Server skipped (ENABLED_MSSQL != true)");
     }
- 
+
+    // ── PostgreSQL (NEW) ────────────────────────────────────────────────────
+    if (isEnabled("ENABLED_POSTGRES")) {
+      await connectPostgres();
+      console.log("✅ PostgreSQL connected");
+    } else {
+      console.log("⏭️  PostgreSQL skipped (ENABLED_POSTGRES != true)");
+    }
+
+    // Optional: Just for logging (pgAdmin is a UI, no real "connection" needed)
+    if (isEnabled("ENABLED_PGADMIN")) {
+      console.log("✅ pgAdmin available at http://localhost:5050");
+    }
+
     // ── HTTP server ───────────────────────────────────────────────────────
     const server = app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT} in ${process.env.NODE_ENV} mode`);
+      console.log(
+        `🚀 Server running on port ${PORT} in ${process.env.NODE_ENV} mode`,
+      );
     });
 
     // ─────────────────────────────────────────
@@ -243,23 +259,22 @@ const startServer = async (): Promise<void> => {
     const shutdown = (signal: string) => {
       console.log(`\n${signal} received — shutting down gracefully`);
       server.close(() => {
-        console.log('✅ HTTP server closed, all in-flight requests finished');
+        console.log("✅ HTTP server closed, all in-flight requests finished");
         process.exit(0);
       });
 
       // Safety net: if requests don't finish within 10s, force exit.
       // Prevents the process from hanging forever on a stuck request.
       setTimeout(() => {
-        console.error('⚠️ Forced shutdown after timeout');
+        console.error("⚠️ Forced shutdown after timeout");
         process.exit(1);
       }, 10_000);
     };
 
-    process.on('SIGTERM', () => shutdown('SIGTERM'));
-    process.on('SIGINT', () => shutdown('SIGINT'));
-
+    process.on("SIGTERM", () => shutdown("SIGTERM"));
+    process.on("SIGINT", () => shutdown("SIGINT"));
   } catch (error) {
-    console.error('❌ Server startup failed:', error);
+    console.error("❌ Server startup failed:", error);
     process.exit(1);
   }
 };
@@ -271,15 +286,15 @@ const startServer = async (): Promise<void> => {
 // Catches Promise rejections that were never .catch()-ed anywhere in the app.
 // Without this, Node.js will eventually crash with an UnhandledPromiseRejection.
 // We exit with code 1 so the process manager restarts the server.
-process.on('unhandledRejection', (reason) => {
-  console.error('💥 Unhandled Promise Rejection:', reason);
+process.on("unhandledRejection", (reason) => {
+  console.error("💥 Unhandled Promise Rejection:", reason);
   process.exit(1);
 });
 
 // Catches synchronous exceptions that escaped all try/catch blocks.
 // Rare but catastrophic — always exit and let the process manager restart.
-process.on('uncaughtException', (error) => {
-  console.error('💥 Uncaught Exception:', error);
+process.on("uncaughtException", (error) => {
+  console.error("💥 Uncaught Exception:", error);
   process.exit(1);
 });
 
